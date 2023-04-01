@@ -8,19 +8,19 @@ def safe_get(input, n, x, y, c):
     return input[n, y, x, c] if (x >= 0 and x < W and y >= 0 and y < H) else 0
 
 def point_sample_tf(input, point_coords, align_corners=False, **kwargs):
-    ''' 
+    """ 
     A TensorFlow implementation of point_sample from detectron. Sample points 
     using bilinear interpolation from `point_coords` which is assumed to be a 
     [0, 1] x [0, 1] square. Default mode for align_corners is False 
     Args:
         input (Tensor): A tensor of shape (N, H, W, C) that contains features map on a H x W grid.
-        point_coords (Tensor): A tensor of shape (N, P, 2) or that contains [0, 1] x [0, 1] 
+        point_coords (Tensor): A tensor of shape (N, P, 2) that contains [0, 1] x [0, 1] 
         normalized point coordinates. 
     Returns:
         output (Tensor): A tensor of shape (N, P, C) containing features for points
         in `point_coords`. The features are obtained via bilinear interpolation from
-        `input`. 
-    ''' 
+        `input`.  
+    """ 
 
     # assert correct dimensions
     assert len(input.shape) == 4
