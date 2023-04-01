@@ -18,13 +18,8 @@ def point_sample_tf(input, point_coords, align_corners=False, **kwargs):
         normalized point coordinates. 
     Returns:
         output (Tensor): A tensor of shape (N, P, C) containing features for points
-        in `point_coords`. The reatures are obtained via bilinear interpoation from
+        in `point_coords`. The features are obtained via bilinear interpolation from
         `input`. 
-
- 
-        output (Tensor): A tensor of shape (N, C, P) or (N, C, Hgrid, Wgrid) that contains
-            features for points in `point_coords`. The features are obtained via bilinear
-            interplation from `input` the same way as :function:`torch.nn.functional.grid_sample`.
     ''' 
 
     # assert correct dimensions
