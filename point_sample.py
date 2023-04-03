@@ -1,6 +1,9 @@
 import tensorflow as tf
 
 def safe_get(input, n, x, y, c):
+    """
+    Provide zero padding for getting values from out of bounds indices from the 'input' matrix
+    """
     # input shape = [N, H, W, C]
     H = input.shape[1]
     W = input.shape[2]

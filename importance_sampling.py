@@ -6,11 +6,11 @@ def calculate_uncertainty_tf(logits):
     We estimate uncerainty as L1 distance between 0.0 and the logit prediction in 'logits' for the
         foreground class in `classes`.
     Args:
-        logits (Tensor): A tensor of shape (R, 1, ...) for class-specific or
+        logits (Tensor): A tensor of shape (R, ..., 1) for class-specific or
             class-agnostic, where R is the total number of predicted masks in all images and C is
             the number of foreground classes. The values are logits.
     Returns:
-        scores (Tensor): A tensor of shape (R, 1, ...) that contains uncertainty scores with
+        scores (Tensor): A tensor of shape (R, ..., 1) that contains uncertainty scores with
             the most uncertain locations having the highest uncertainty score.
     """
     # assert logits.shape[1] == 1
