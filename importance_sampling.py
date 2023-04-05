@@ -71,7 +71,6 @@ def get_uncertain_point_coords_with_randomness(
     point_coords = tf.gather(point_coords, idx)
     point_coords = tf.reshape(point_coords, [num_boxes, num_uncertain_points, 2])
 
-
     if num_random_points > 0:
         point_coords = tf.concat(
             [

@@ -1,7 +1,16 @@
 import numpy as np
 import tensorflow as tf
-from importance_sampling import get_uncertain_point_coords_with_randomness, calculate_uncertainty
-from importance_sampling_expected_values import oneBatch, largeBatch, squareSrcMask, largeNumPoints
+from importance_sampling import (
+    get_uncertain_point_coords_with_randomness,
+    calculate_uncertainty,
+)
+from importance_sampling_expected_values import (
+    oneBatch,
+    largeBatch,
+    squareSrcMask,
+    largeNumPoints,
+)
+
 
 class ImportanceSamplingTest(tf.test.TestCase):
     OVERSAMPLE_RATIO = 3.0
@@ -19,7 +28,7 @@ class ImportanceSamplingTest(tf.test.TestCase):
             uncertainty_func=(lambda logits: calculate_uncertainty(logits)),
             num_points=self.NUM_POINTS,
             oversample_ratio=self.OVERSAMPLE_RATIO,
-            importance_sample_ratio=self.IMPORTANCE_SAMPLE_RATIO
+            importance_sample_ratio=self.IMPORTANCE_SAMPLE_RATIO,
         )
 
         self.assertAllClose(point_coords, expected_res)
@@ -38,14 +47,13 @@ class ImportanceSamplingTest(tf.test.TestCase):
             uncertainty_func=(lambda logits: calculate_uncertainty(logits)),
             num_points=self.NUM_POINTS,
             oversample_ratio=self.OVERSAMPLE_RATIO,
-            importance_sample_ratio=self.IMPORTANCE_SAMPLE_RATIO
+            importance_sample_ratio=self.IMPORTANCE_SAMPLE_RATIO,
         )
 
         self.assertAllClose(point_coords, expected_res)
         self.assertEqual(point_coords.shape[0], src_mask.shape[0])
         self.assertEqual(point_coords.shape[1], self.NUM_POINTS)
         self.assertEqual(point_coords.shape[2], 2)
-
 
     def testSquareSrcMask(self):
         tf.random.set_seed(0)
@@ -58,7 +66,7 @@ class ImportanceSamplingTest(tf.test.TestCase):
             uncertainty_func=(lambda logits: calculate_uncertainty(logits)),
             num_points=self.NUM_POINTS,
             oversample_ratio=self.OVERSAMPLE_RATIO,
-            importance_sample_ratio=self.IMPORTANCE_SAMPLE_RATIO
+            importance_sample_ratio=self.IMPORTANCE_SAMPLE_RATIO,
         )
 
         self.assertAllClose(point_coords, expected_res)
@@ -77,13 +85,14 @@ class ImportanceSamplingTest(tf.test.TestCase):
             uncertainty_func=(lambda logits: calculate_uncertainty(logits)),
             num_points=300,
             oversample_ratio=self.OVERSAMPLE_RATIO,
-            importance_sample_ratio=self.IMPORTANCE_SAMPLE_RATIO
+            importance_sample_ratio=self.IMPORTANCE_SAMPLE_RATIO,
         )
 
         self.assertAllClose(point_coords, expected_res)
         self.assertEqual(point_coords.shape[0], src_mask.shape[0])
         self.assertEqual(point_coords.shape[1], 300)
         self.assertEqual(point_coords.shape[2], 2)
+
 
 if __name__ == "__main__":
     tf.test.main()
