@@ -1,7 +1,8 @@
 import tensorflow as tf
-from point_sample import point_sample_tf
+from point_sample import point_sample
 
-def calculate_uncertainty_tf(logits):
+
+def calculate_uncertainty(logits):
     """
     We estimate uncerainty as L1 distance between 0.0 and the logit prediction in 'logits' for the
         foreground class in `classes`.
@@ -21,9 +22,12 @@ def calculate_uncertainty_tf(logits):
     return -(tf.abs(gt_class_logits))
 
 
-
-def get_uncertain_point_coords_with_randomness_tf(
-    coarse_logits, uncertainty_func, num_points, oversample_ratio, importance_sample_ratio
+def get_uncertain_point_coords_with_randomness(
+    coarse_logits,
+    uncertainty_func,
+    num_points,
+    oversample_ratio,
+    importance_sample_ratio,
 ):
     """
     Sample points in [0, 1] x [0, 1] coordinate space based on their uncertainty. The unceratinties
@@ -48,12 +52,12 @@ def get_uncertain_point_coords_with_randomness_tf(
     num_boxes = coarse_logits.shape[0]
     num_sampled = int(num_points * oversample_ratio)
     # point_coords shape (N, P, 2)
-    point_coords = tf.random.uniform(shape=[num_boxes, num_sampled, 2])   
+    point_coords = tf.random.uniform(shape=[num_boxes, num_sampled, 2])
 
     # point_logits shape (N, P, C)
-    point_logits = point_sample_tf(coarse_logits, point_coords, align_corners=False)
-    point_uncertainties = uncertainty_func(point_logits) 
-    
+    point_logits = point_sample(coarse_logits, point_coords, align_corners=False)
+    point_uncertainties = uncertainty_func(point_logits)
+
     num_uncertain_points = int(importance_sample_ratio * num_points)
     num_random_points = num_points - num_uncertain_points
     idx = tf.math.top_k(point_uncertainties[:, :, 0], k=num_uncertain_points)[1]
@@ -67,6 +71,7 @@ def get_uncertain_point_coords_with_randomness_tf(
     point_coords = tf.gather(point_coords, idx)
     point_coords = tf.reshape(point_coords, [num_boxes, num_uncertain_points, 2])
 
+
     if num_random_points > 0:
         point_coords = tf.concat(
             [
@@ -77,27 +82,30 @@ def get_uncertain_point_coords_with_randomness_tf(
         )
     return point_coords
 
+
 if __name__ == "__main__":
 
-    # src_mask (N, H, W, C) C = 1 
-    src_mask = tf.random.uniform(shape=[3, 15, 20, 1])
+    tf.random.set_seed(0)
+
+    # src_mask (N, H, W, C) C = 1
+    # src_mask = tf.random.uniform(shape=[3, 15, 20, 1])
+    src_mask = tf.random.uniform(shape=[1, 10, 14, 1])
     OVERSAMPLE_RATIO = 3.0
     IMPORTANCE_SAMPLE_RATIO = 0.75
     # NUM_POINTS = 112 * 112
     NUM_POINTS = 15
 
-    point_coords = get_uncertain_point_coords_with_randomness_tf(
+    point_coords = get_uncertain_point_coords_with_randomness(
         coarse_logits=src_mask,
-        uncertainty_func=(lambda logits: calculate_uncertainty_tf(logits)),
+        uncertainty_func=(lambda logits: calculate_uncertainty(logits)),
         num_points=NUM_POINTS,
         oversample_ratio=OVERSAMPLE_RATIO,
-        importance_sample_ratio=IMPORTANCE_SAMPLE_RATIO
+        importance_sample_ratio=IMPORTANCE_SAMPLE_RATIO,
     )
 
     print(point_coords.shape)
     print(point_coords)
 
     assert point_coords.shape[0] == src_mask.shape[0]
-    assert point_coords.shape[0] == NUM_POINTS
-    assert point_coords.shape[0] == 2
-
+    assert point_coords.shape[1] == NUM_POINTS
+    assert point_coords.shape[2] == 2
