@@ -1,6 +1,6 @@
 import tensorflow as tf
-from point_sample import point_sample
-
+import time
+from point_sample import point_sample, point_sample_slow, point_sample_2
 
 def calculate_uncertainty(logits):
     """
@@ -88,12 +88,24 @@ if __name__ == "__main__":
 
     # src_mask (N, H, W, C) C = 1
     # src_mask = tf.random.uniform(shape=[3, 15, 20, 1])
-    src_mask = tf.random.uniform(shape=[1, 10, 14, 1])
+
+    # Basic (non memory) performance test setup
+    # test 100 masks of size 256x256
+    # sampling_ops = 0
+    # full_ops = 0
+
+    src_mask = tf.random.uniform(shape=[3, 200, 200, 1])
+    tgt_mask = tf.random.uniform(shape=[3, 200, 200, 1])
+
+    # Setup to match Mask2Former sampling params
     OVERSAMPLE_RATIO = 3.0
     IMPORTANCE_SAMPLE_RATIO = 0.75
+    NUM_POINTS = 100 * 100
     # NUM_POINTS = 112 * 112
-    NUM_POINTS = 15
+    # NUM_POINTS = 15
 
+    #print("uncertainty pts")
+    start_time = time.process_time()
     point_coords = get_uncertain_point_coords_with_randomness(
         coarse_logits=src_mask,
         uncertainty_func=(lambda logits: calculate_uncertainty(logits)),
@@ -102,9 +114,33 @@ if __name__ == "__main__":
         importance_sample_ratio=IMPORTANCE_SAMPLE_RATIO,
     )
 
-    print(point_coords.shape)
-    print(point_coords)
+    # Get point labels, point logits
+    lap1 = time.process_time()
+    point_labels = point_sample(tgt_mask, point_coords, align_corners=False)
+    point_logits = point_sample(src_mask, point_coords, align_corners=False)
 
-    assert point_coords.shape[0] == src_mask.shape[0]
-    assert point_coords.shape[1] == NUM_POINTS
-    assert point_coords.shape[2] == 2
+    # Placeholder loss
+    #print("starting placeholder losses")
+    lap2 = time.process_time()
+    loss_placeholder_sampling = tf.nn.sigmoid_cross_entropy_with_logits(labels=point_labels, logits=point_logits)
+    lap3 = time.process_time()
+    loss_placeholder_full = tf.nn.sigmoid_cross_entropy_with_logits(labels=tgt_mask, logits=src_mask)
+    lap4 = time.process_time()
+    #print("done")
+
+    get_coords_time = lap1 - start_time
+    point_sample_time = lap2 - lap1
+    sample_loss_time = lap3 - lap2
+    full_time = lap4 - lap3
+
+    print("Time to get point coords: {:.10f}".format(get_coords_time))
+    print("Time to sample: {:.10f}".format(point_sample_time))
+    print("Sampling loss time: {:.10f}".format(sample_loss_time))
+    print("Full loss time: {:.10f}".format(full_time))
+
+    # print(point_coords.shape)
+    # print(point_coords)
+
+    # assert point_coords.shape[0] == src_mask.shape[0]
+    # assert point_coords.shape[1] == NUM_POINTS
+    # assert point_coords.shape[2] == 2
